@@ -1,0 +1,6 @@
+python-fasthtml
+uvicorn
+python-chess
+crewai
+crewai_tools
+openai
