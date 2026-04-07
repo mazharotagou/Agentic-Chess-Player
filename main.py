@@ -1,4 +1,8 @@
 from fasthtml.common import *
+from packages import chess_
+from packages.crewai_main import run
+import json
+
 
 app, rt = fast_app(
     hdrs=(
@@ -23,6 +27,8 @@ def home():
 document.addEventListener("DOMContentLoaded", function () {
     const game = new Chess();
 
+    
+
     function showStatus(msg) {
         document.getElementById("status").textContent = msg;
     }
@@ -44,9 +50,28 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             body: JSON.stringify(payload)
         })
-        .then(r => r.text())
-        .then(html => {
-            document.getElementById("status").innerHTML = html;
+        .then(function(r) {
+            return r.text();
+                })
+        .then(function(nextmove) {
+            const moveObj = {
+                from: nextmove.slice(0, 2),
+                to: nextmove.slice(2, 4)
+            };
+
+            if (nextmove.length === 5) {
+                moveObj.promotion = nextmove[4];
+            }
+
+            const appliedMove = game.move(moveObj);
+
+            if (appliedMove === null) {
+                showStatus("Backend sent an illegal move: " + nextmove);
+                return;
+            }
+
+            board.position(game.fen());
+            showStatus("Agent move: " + appliedMove.san);
         })
         .catch(err => {
             showStatus("Backend error: " + err);
@@ -56,6 +81,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function onDragStart(source, piece) {
         if (game.game_over()) return false;
 
+        if (game.turn() === "b") return false;
+               
         if (
             (game.turn() === "w" && piece.startsWith("b")) ||
             (game.turn() === "b" && piece.startsWith("w"))
@@ -74,7 +101,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (move === null) return "snapback";
 
         board.position(game.fen());
-        sendStateToBackend(move);
+        if (game.turn() === "b") {
+            sendStateToBackend(move);
+            showStatus("Waiting for agent's move...");
+        } else {
+            showStatus("Your move: " + move.san);
+        }
+        
     }
 
     const board = Chessboard("board", {
@@ -93,6 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 @rt("/game_state")
 async def post(req):
+    server_side_color = "Black"
     data = await req.json()
     fen = data.get("fen", "")
     print ("The FEN notation is ", fen)
@@ -102,11 +136,17 @@ async def post(req):
     to_sq = data.get("to", "")
     san = data.get("san", "")
 
-    return Div(
-        P(B("Last move: "), f"{from_sq} → {to_sq} ({san})"),
-        P(B("Turn: "), "White" if turn == "w" else "Black"),
-        P(B("FEN: "), fen),
-        P(B("PGN so far: "), pgn if pgn else "No PGN yet")
-    )
+    if chess_.checkmate_test(fen):
+        return Div(
+            H2("Checkmate!"),
+            P("Congratulations, you won! Refresh to play again.")
+        )
+    else:
+        if turn == "b":
+            legal_moves = chess_.legal_moves_black(fen)
+            result = run(chess_state=fen, color=server_side_color, legal_moves=legal_moves)
+            #result format is result.best_move, result.reason
+            return result
+            
 
 serve()

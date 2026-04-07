@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "chess>=1.11.2",
     "crewai>=1.13.0",
     "python-fasthtml>=0.13.2",
 ]

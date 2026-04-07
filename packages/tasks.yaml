@@ -1,0 +1,41 @@
+analyze_position:
+  description: >
+    Analyze the chess position {chess_state}, and all the available legal moves {legal_moves} for the {color} side.
+
+    Return between 1 and 5 best legal moves in valid JSON format matching this schema:
+    {
+      "move_list": [
+        {
+          "move_code": "e2e4",
+          "reason": "short reason"
+        }
+      ]
+    }
+
+    Important rules:
+    - Only return legal moves.
+    - Use UCI notation for move_code.
+    - Rank the moves from best to worst.
+    - Keep reasons short and clear.
+  expected_output: >
+    A JSON object with key move_list containing 1 to 5 legal moves with reasons.
+  agent: chess_strategist
+
+select_best_move:
+  description: >
+    Review the candidate moves generated for chess position {chess_state} for the {color} side.
+
+    Select exactly one best legal move.
+
+    Return valid JSON matching this schema:
+    {
+      "best_move": "e2e4",
+      "reason": "short reason"
+    }
+
+    Only output the JSON object.
+  expected_output: >
+    A JSON object containing best_move and reason.
+  agent: chess_player
+  context:
+    - analyze_position
