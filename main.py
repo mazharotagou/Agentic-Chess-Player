@@ -18,10 +18,10 @@ app, rt = fast_app(
 
 @rt("/")
 def home():
-    return Title("FastHTML Chess Agent"), Main(
+    return Title("Agentic Chess Player"), Main(
         H1("Agentic Chess Player"),
-        P("Move a piece, then send the game state to the backend."),
-        Div(id="board", style="width: 400px;"),
+        P("White to Play First, by simply dragging and dropping the piece."),
+        Div(id="board", style="width: 600px;"),
         Pre(id="status", style="margin-top:20px; padding:10px; background:#f5f5f5;"),
         Script("""
 document.addEventListener("DOMContentLoaded", function () {
