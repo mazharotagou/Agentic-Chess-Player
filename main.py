@@ -148,5 +148,5 @@ async def post(req):
             #result format is result.best_move, result.reason
             return result
             
-
-serve()
+if __name__ == "__main__":
+    serve()
