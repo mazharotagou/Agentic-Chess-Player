@@ -33,6 +33,7 @@ class ChessAgent:
         return Agent(
             config=self.agents_config["chess_strategist"],
             verbose=True,
+            allow_code_execution=True,
         )
 
     @agent
